@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            border-radius: 5px;
+            margin: 5px 0;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            border: none;
+        }
+        .btn-add {
+            background: #20c997;
+            color: white;
+        }
+        .broadcast-preview {
+            background-color: #f0f5ff;
+            border-left: 3px solid #2575fc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .btn-container .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+        .form-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 col-lg-2 sidebar p-0">
+                <div class="p-4">
+                    <h4 class="text-center mb-4">Bot Admin</h4>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin">
+                                <i class="bi bi-broadcast me-2"></i> Broadcast
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/users">
+                                <i class="bi bi-people me-2"></i> Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/export">
+                                <i class="bi bi-download me-2"></i> Export Data
+                            </a>
+                        </li>
+                        <li class="nav-item mt-4">
+                            <a class="nav-link" href="/admin/logout">
+                                <i class="bi bi-box-arrow-left me-2"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 col-lg-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>Broadcast Message</h3>
+                    <div class="text-end">
+                        <span class="badge bg-primary">
+                            <i class="bi bi-people-fill"></i> 
+                            {{ total_users }} Users
+                        </span>
+                    </div>
+                </div>
+
+                {% if success %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ success }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+
+                <div class="card">
+                    <div class="card-body">
+                        <form method="POST" enctype="multipart/form-data">
+                            <!-- Message Section -->
+                            <div class="form-section">
+                                <h5><i class="bi bi-chat-text me-2"></i>Message Content</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Message Text</label>
+                                    <textarea class="form-control" name="message" rows="5" placeholder="Enter your broadcast message..." required></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Upload Image (Optional)</label>
+                                    <input class="form-control" type="file" name="image" accept="image/*">
+                                </div>
+                            </div>
+
+                            <!-- Buttons Section -->
+                            <div class="form-section">
+                                <h5><i class="bi bi-buttons me-2"></i>Action Buttons</h5>
+                                <p class="text-muted">Add up to 5 buttons with links</p>
+                                
+                                {% for i in range(1, 6) %}
+                                <div class="row mb-3">
+                                    <div class="col-md-5">
+                                        <input type="text" class="form-control" name="btn_text_{{ i }}" placeholder="Button {{ i }} Text">
+                                    </div>
+                                    <div class="col-md-7">
+                                        <input type="url" class="form-control" name="btn_url_{{ i }}" placeholder="https://example.com">
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-between mt-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="send_now" id="sendNow" checked>
+                                    <label class="form-check-label" for="sendNow">
+                                        Send immediately to all users
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send"></i> Create Broadcast
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-eye"></i> Preview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="broadcast-preview">
+                            <div class="text-center mb-3" id="imagePreview">
+                                <img src="https://via.placeholder.com/400x200?text=Image+Preview" class="img-fluid rounded" id="previewImage">
+                            </div>
+                            <div id="textPreview" class="mb-3">
+                                Your message will appear here...
+                            </div>
+                            <div class="btn-container" id="buttonPreview">
+                                <!-- Buttons will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card stat-card bg-primary text-white">
+                            <h5><i class="bi bi-people"></i> Total Users</h5>
+                            <h2>{{ total_users }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card bg-success text-white">
+                            <h5><i class="bi bi-activity"></i> Active Users</h5>
+                            <h2>{{ active_users }}</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card bg-info text-white">
+                            <h5><i class="bi bi-megaphone"></i> Broadcasts</h5>
+                            <h2>{{ broadcast_count }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Live preview for message text
+        document.querySelector('textarea[name="message"]').addEventListener('input', function() {
+            document.getElementById('textPreview').innerText = this.value || 'Your message will appear here...';
+        });
+
+        // Live preview for image upload
+        document.querySelector('input[name="image"]').addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('previewImage').src = event.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Live preview for buttons
+        for (let i = 1; i <= 5; i++) {
+            document.querySelector(`input[name="btn_text_${i}"]`).addEventListener('input', updateButtonPreview);
+            document.querySelector(`input[name="btn_url_${i}"]`).addEventListener('input', updateButtonPreview);
+        }
+
+        function updateButtonPreview() {
+            const container = document.getElementById('buttonPreview');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 5; i++) {
+                const text = document.querySelector(`input[name="btn_text_${i}"]`).value;
+                const url = document.querySelector(`input[name="btn_url_${i}"]`).value;
+                
+                if (text && url) {
+                    const btn = document.createElement('a');
+                    btn.className = 'btn btn-outline-primary';
+                    btn.href = url;
+                    btn.target = '_blank';
+                    btn.innerText = text;
+                    container.appendChild(btn);
+                }
+            }
+            
+            if (container.children.length === 0) {
+                container.innerHTML = '<p class="text-muted">No buttons added</p>';
+            }
+        }
+        
+        // Initialize preview
+        updateButtonPreview();
+    </script>
+</body>
+</html>
