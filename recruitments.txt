@@ -1,4 +1,0 @@
-aiogram
-flask
-flask-wtf
-python-dotenv
